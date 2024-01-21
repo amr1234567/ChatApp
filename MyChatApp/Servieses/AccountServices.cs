@@ -2,6 +2,7 @@
 using MyChatApp.Context;
 using MyChatApp.Models;
 using MyChatApp.Models.Dto;
+using System.Text.RegularExpressions;
 
 namespace MyChatApp.Servieses
 {
@@ -33,7 +34,13 @@ namespace MyChatApp.Servieses
             if (userCheck != null) ReturnBox.messageDetails.Add("UserName is Already Chosen");
             else
             {
-                var user = new User() { Name = logInUser.UserName, Password = logInUser.Password };
+                var user = new User()
+                {
+                    Id = Guid.NewGuid(),
+                    Name = logInUser.UserName,
+                    Password = logInUser.Password
+                };
+                ReturnBox.Succesed = true;
                 ReturnBox.UserId = user.Id;
                 await context.Users.AddAsync(user);
                 await context.SaveChangesAsync();
@@ -42,7 +49,62 @@ namespace MyChatApp.Servieses
         }
         public async Task<User?> GetUserById(Guid userId)
         {
-            return await context.Users.FindAsync(userId); ;
+            return await context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+        }
+        public async Task AddToGroup(Guid UserId, Guid GroupId)
+        {
+            var user = await GetUserById(UserId);
+            if (user != null)
+            {
+                var Group = await context.Groups.FirstOrDefaultAsync(g => g.Id == GroupId);
+                if (Group != null)
+                {
+                    if (Group.Users == null)
+                    {
+                        Group.Users = new List<User>();
+                        Group.Users.Add(user);
+                    }
+                    else
+                        Group.Users.Add(user);
+                    
+                    await context.SaveChangesAsync();
+                }
+            }
+        }
+        public async Task LeftGroup(Guid UserId, Guid GroupId)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == UserId);
+            if (user != null)
+            {
+                var Group = await context.Groups.FirstOrDefaultAsync(g => g.Id == GroupId);
+                if (Group != null && Group.Users != null)
+                {
+                    if (Group.Users.Any(u => u.Id == UserId))
+                    {
+                        Group.Users.Remove(user);
+                        await context.SaveChangesAsync();
+                    }
+                }
+            }
+        }
+        public async Task AddConnectionIdToUser(Guid UserId, string ConnectionId)
+        {
+            var user =await GetUserById(UserId);
+            if (user != null)
+            {
+                user.ConnectionId = ConnectionId;
+                await context.SaveChangesAsync();
+            }
+        }
+        public async Task<List<string>?> GetGroupsOfUser(Guid UserId)
+        {
+            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == UserId);
+            if (user != null && user.Groups != null) 
+            {
+                var groups = user.Groups.Select(g=> g.Name).ToList();
+                return groups;
+            }
+            return null;
         }
     }
 }

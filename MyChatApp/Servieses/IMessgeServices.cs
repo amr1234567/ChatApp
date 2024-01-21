@@ -8,8 +8,8 @@ namespace MyChatApp.Servieses
         Task<bool> CheckUserInGroup(Guid UserId, Guid GroupId);
         Task DeleteMessage(Message message);
         Task EditMessage(MessageForEditDto message);
-        Task JoinGroup(Guid UserId, Guid GroupId);
-        Task LeftGroup(Guid UserId, Guid GroupId);
+        Task JoinGroup(Guid UserId, string userName, Guid GroupId);
+        Task LeftGroup(Guid UserId, string userName, Guid GroupId);
         Task SendMessage(Message message);
     }
 }

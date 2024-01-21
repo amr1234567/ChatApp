@@ -59,41 +59,29 @@ namespace MyChatApp.Servieses
             return false;
         }
 
-        public async Task JoinGroup(Guid UserId, Guid GroupId)
+        public async Task JoinGroup(Guid UserId,string userName, Guid GroupId)
         {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == UserId);
-            if (user != null)
-            {
-                var Group = await context.Groups.FirstOrDefaultAsync(g => g.Id == GroupId);
-                if (Group != null)
-                {
-                    if (Group.Users == null)
+            context.Messages
+                    .Add(new Message()
                     {
-                        Group.Users = new List<User>();
-                        Group.Users.Add(user);
-                    }
-                    else
-                        Group.Users.Add(user);
-
-                    await context.SaveChangesAsync();
-                }
-            }
+                        Id = Guid.NewGuid(),
+                        GroupId = GroupId,
+                        SenderId = UserId,
+                        Content = $"{userName} has joined the group"
+                    });
+            await context.SaveChangesAsync();
         }
-        public async Task LeftGroup(Guid UserId, Guid GroupId)
+        public async Task LeftGroup(Guid UserId, string userName, Guid GroupId)
         {
-            var user = await context.Users.FirstOrDefaultAsync(u => u.Id == UserId);
-            if (user != null)
-            {
-                var Group = await context.Groups.FirstOrDefaultAsync(g => g.Id == GroupId);
-                if (Group != null && Group.Users != null)
-                {
-                    if (Group.Users.Any(u => u.Id == UserId))
+            context.Messages
+                    .Add(new Message()
                     {
-                        Group.Users.Remove(user);
-                        await context.SaveChangesAsync();
-                    }
-                }
-            }
+                        Id = Guid.NewGuid(),
+                        GroupId = GroupId,
+                        SenderId = UserId,
+                        Content = $"{userName} has joined the group"
+                    });
+            await context.SaveChangesAsync();
         }
     }
 }
